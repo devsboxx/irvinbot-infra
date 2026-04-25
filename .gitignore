@@ -1,0 +1,4 @@
+.env
+postgres_data/
+chroma_data/
+uploads_data/
