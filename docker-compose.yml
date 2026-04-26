@@ -17,7 +17,7 @@ services:
       retries: 10
 
   chromadb:
-    image: chromadb/chroma:latest
+    image: chromadb/chroma:0.5.23
     environment:
       ANONYMIZED_TELEMETRY: "false"
     volumes:
