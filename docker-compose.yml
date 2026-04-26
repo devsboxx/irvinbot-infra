@@ -16,21 +16,6 @@ services:
       timeout: 5s
       retries: 10
 
-  chromadb:
-    image: chromadb/chroma:0.5.23
-    environment:
-      ANONYMIZED_TELEMETRY: "false"
-    volumes:
-      - chroma_data:/chroma/chroma
-    ports:
-      - "8004:8000"
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/heartbeat')\" 2>/dev/null || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-
   auth:
     build:
       context: ../irvinbot-auth
@@ -52,14 +37,13 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/irvinbot_chat
-      CHROMA_HOST: chromadb
-      CHROMA_PORT: 8000
+      DOCS_SERVICE_URL: http://docs:8003
     ports:
       - "8002:8002"
     depends_on:
       postgres:
         condition: service_healthy
-      chromadb:
+      docs:
         condition: service_started
     restart: on-failure
 
@@ -70,8 +54,6 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/irvinbot_docs
-      CHROMA_HOST: chromadb
-      CHROMA_PORT: 8000
       UPLOAD_DIR: /data/uploads
     volumes:
       - uploads_data:/data/uploads
@@ -80,8 +62,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      chromadb:
-        condition: service_started
     restart: on-failure
 
   gateway:
@@ -103,5 +83,4 @@ services:
 
 volumes:
   postgres_data:
-  chroma_data:
   uploads_data:
